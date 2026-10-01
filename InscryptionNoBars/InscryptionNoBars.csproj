@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <IsPackable>false</IsPackable>
+        <LangVersion>latest</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <DebugType>none</DebugType>
+        <DebugSymbols>false</DebugSymbols>
+        <GenerateDependencyFile>false</GenerateDependencyFile>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <Version>0.1.0</Version>
+    </PropertyGroup>
+
+    <!-- The compiled assembly is an intermediate: the only thing bin/Release must hold is the
+         installable pack, InscryptionNoBars.zip (manifest.json + icon.png + the assembly), which is
+         the folder layout BepInEx expects inside BepInEx/plugins. -->
+    <PropertyGroup>
+        <OutputPath>$(BaseIntermediateOutputPath)build\$(Configuration)\</OutputPath>
+        <PackStagePath>$(BaseIntermediateOutputPath)pack\$(Configuration)\</PackStagePath>
+        <PackOutputPath>$(MSBuildProjectDirectory)\bin\$(Configuration)\</PackOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="BepInEx.Analyzers" Version="1.0.8">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="BepInEx.Core" Version="5.4.19" />
+        <PackageReference Include="HarmonyX" Version="2.9.0" />
+        <PackageReference Include="UnityEngine.Modules" Version="2019.4.24" />
+        <!-- Pins the game version this mod was written against. The patch resolves PixelCamera by
+             name through Harmony, so this is only a compile-time reference and must never end up in
+             the pack: shipping the game's own Assembly-CSharp next to the mod would make BepInEx
+             load a duplicate copy of the game assembly. -->
+        <PackageReference Include="Inscryption.GameLibs" Version="1.9.0-r.0">
+            <ExcludeAssets>runtime</ExcludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <Target Name="CreatePluginPack" AfterTargets="Build">
+        <!-- Wiped first so the archive can never pick up stale leftovers (.pdb, .deps.json, ...). -->
+        <RemoveDir Directories="$(PackStagePath)" />
+        <MakeDir Directories="$(PackStagePath)" />
+
+        <ItemGroup>
+            <PackFile Include="$(OutDir)$(AssemblyName).dll" />
+            <PackFile Include="$(MSBuildProjectDirectory)\..\manifest.json" />
+            <PackFile Include="$(MSBuildProjectDirectory)\..\icon.png" />
+        </ItemGroup>
+
+        <Copy SourceFiles="@(PackFile)" DestinationFolder="$(PackStagePath)" />
+        <MakeDir Directories="$(PackOutputPath)" />
+        <ZipDirectory SourceDirectory="$(PackStagePath)"
+                      DestinationFile="$(PackOutputPath)$(AssemblyName).zip"
+                      Overwrite="true" />
+    </Target>
+
+</Project>

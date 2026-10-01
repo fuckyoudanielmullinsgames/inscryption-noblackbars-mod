@@ -1,0 +1,33 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "inscryption_nobars"
+name = "NoBars"
+versionNumber = "0.1.0"
+description = "Removes the vertical black bars Inscryption draws when the window is taller than the game's 1.75:1 cap. Keeps the pixel-perfect rendering and the original horizontal framing; nothing gets cropped or stretched."
+websiteUrl = ""
+containsNsfwContent = false
+
+[package.dependencies]
+BepInEx-BepInExPack_Inscryption = "5.4.1902"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "./build"
+
+[[build.copy]]
+source = "InscryptionNoBars/obj/build/Release/InscryptionNoBars.dll"
+target = "plugins/InscryptionNoBars.dll"
+
+[[build.copy]]
+source = "./CHANGELOG.md"
+target = "./CHANGELOG.md"
+
+[publish]
+repository = "https://thunderstore.io"
+communities = ["inscryption"]
+
+[publish.categories]
+inscryption = ["tweaks"]

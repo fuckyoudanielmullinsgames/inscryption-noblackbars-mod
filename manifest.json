@@ -1,0 +1,10 @@
+{
+  "namespace": "inscryption_nobars",
+  "name": "NoBars",
+  "description": "Removes the vertical black bars Inscryption draws when the window is taller than the game's 1.75:1 cap. Keeps the pixel-perfect rendering and the original horizontal framing; nothing gets cropped or stretched.",
+  "version_number": "0.1.0",
+  "dependencies": [
+    "BepInEx-BepInExPack_Inscryption-5.4.1902"
+  ],
+  "website_url": ""
+}
