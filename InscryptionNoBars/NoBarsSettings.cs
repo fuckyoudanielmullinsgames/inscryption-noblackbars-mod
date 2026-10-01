@@ -10,6 +10,7 @@ namespace InscryptionNoBars
     internal static class NoBarsSettings
     {
         private const float DefaultMaxExpansion = 1.6f;
+        private const int DefaultPaintingMaxHeight = 4096;
 
 
         private static ConfigEntry<string> _mode;
@@ -17,6 +18,8 @@ namespace InscryptionNoBars
         private static ConfigEntry<float> _maxExpansion;
         private static ConfigEntry<bool> _forceFullRect;
         private static ConfigEntry<bool> _debug;
+        private static ConfigEntry<bool> _paintingFollowsScreen;
+        private static ConfigEntry<int> _paintingMaxHeight;
 
         internal static FramingMode Mode { get; private set; } = FramingMode.PreserveHorizontal;
 
@@ -25,6 +28,10 @@ namespace InscryptionNoBars
         internal static bool ForceFullRectOnUnpatchedCameras { get; private set; } = true;
 
         internal static float MaxExpansion { get; private set; } = DefaultMaxExpansion;
+
+        internal static bool PaintingFollowsScreen { get; private set; } = true;
+
+        internal static int PaintingMaxHeight { get; private set; } = DefaultPaintingMaxHeight;
 
         internal static bool DebugLogging { get; private set; }
 
@@ -47,6 +54,15 @@ namespace InscryptionNoBars
                 "Safety net: force a full-screen viewport on any camera that still letterboxes and is not handled " +
                 "by the PixelCamera patch. Cameras that render to a texture are never touched.");
 
+            _paintingFollowsScreen = config.Bind("Painting", "PaintingFollowsScreen", true,
+                "Resize the oil painting's render texture to the window height so the picture keeps the same " +
+                "pixel density as the rest of the game. Turn this off to leave the shipped 780x600 texture alone.");
+
+            _paintingMaxHeight = config.Bind("Painting", "PaintingMaxHeight", DefaultPaintingMaxHeight,
+                "Upper bound on the oil painting's render texture height in pixels. 0 or below disables the " +
+                "resize entirely, and a cap below the shipped 600 rows is ignored so the picture never gets " +
+                "worse than the game's own.");
+
             _debug = config.Bind("Debug", "Enabled", false,
                 "Verbose logging of every framing decision.");
 
@@ -58,7 +74,8 @@ namespace InscryptionNoBars
             config.ConfigReloaded += OnConfigReloaded;
             config.SettingChanged += OnSettingChanged;
 
-            NoBarsPlugin.Log?.LogInfo($"[NoBars] Mode={Mode}, PatchGbcCameras={PatchGbcCameras}, MaxExpansion={MaxExpansion}");
+            NoBarsPlugin.Log?.LogInfo($"[NoBars] Mode={Mode}, PatchGbcCameras={PatchGbcCameras}, MaxExpansion={MaxExpansion}, " +
+                                       $"PaintingFollowsScreen={PaintingFollowsScreen}, PaintingMaxHeight={PaintingMaxHeight}");
         }
 
         private static void OnConfigReloaded(object sender, EventArgs e)
@@ -75,7 +92,8 @@ namespace InscryptionNoBars
 
         private static void LogReloaded()
         {
-            NoBarsPlugin.Log?.LogInfo($"[NoBars] Reloaded settings: Mode={Mode}, PatchGbcCameras={PatchGbcCameras}, MaxExpansion={MaxExpansion}");
+            NoBarsPlugin.Log?.LogInfo($"[NoBars] Reloaded settings: Mode={Mode}, PatchGbcCameras={PatchGbcCameras}, MaxExpansion={MaxExpansion}, " +
+                                       $"PaintingFollowsScreen={PaintingFollowsScreen}, PaintingMaxHeight={PaintingMaxHeight}");
         }
 
         private static void Refresh()
@@ -90,6 +108,9 @@ namespace InscryptionNoBars
             // BepInEx already parses the float out of the config file (and falls back to the
             // default on garbage input), so only the sanity check is left to do here.
             MaxExpansion = _maxExpansion.Value > 0f ? _maxExpansion.Value : DefaultMaxExpansion;
+
+            PaintingFollowsScreen = _paintingFollowsScreen.Value;
+            PaintingMaxHeight = _paintingMaxHeight.Value;
         }
 
         private static FramingMode ParseMode(string value)
